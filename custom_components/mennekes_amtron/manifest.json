@@ -1,11 +1,11 @@
+
 {
   "domain": "mennekes_amtron",
-  "name": "MENNEKES AMTRON Professional",
-  "codeowners": [],
+  "name": "Mennekes Amtron Professional",
+  "version": "0.1.0",
+  "dependencies": [],
+  "codeowners": ["@SPT1YH"],
+  "requirements": ["pymodbus>=3.4.0"],
   "config_flow": true,
-  "documentation": "https://www.mennekes.de/emobility/wissen/kompatible-systeme/modbus-tcp/",
-  "integration_type": "device",
-  "iot_class": "local_polling",
-  "requirements": [],
-  "version": "0.1.0"
+  "iot_class": "local_polling"
 }

@@ -1,27 +1,30 @@
-"""MENNEKES AMTRON Professional integration."""
-
-from __future__ import annotations
-
+# custom_components/mennekes_amtron/__init__.py
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.const import CONF_HOST, CONF_PORT
 
-from .const import DOMAIN, PLATFORMS
-from .coordinator import MennekesCoordinator, async_create_coordinator
+from .const import DOMAIN
+from .coordinator import MennekesAmtronCoordinator
 
-
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up the integration."""
-    return True
-
+PLATFORMS = ["sensor", "number", "switch"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up a MENNEKES AMTRON config entry."""
-    coordinator = await async_create_coordinator(hass, entry)
-    entry.runtime_data = coordinator
+    hass.data.setdefault(DOMAIN, {})
+
+    host = entry.data[CONF_HOST]
+    port = entry.data.get(CONF_PORT, 502)
+
+    coordinator = MennekesAmtronCoordinator(hass, host, port)
+    await coordinator.async_config_entry_first_refresh()
+
+    hass.data[DOMAIN][entry.entry_id] = coordinator
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
     return True
 
-
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a MENNEKES AMTRON config entry."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unload_ok:
+        hass.data[DOMAIN].pop(entry.entry_id)
+    return unload_ok
