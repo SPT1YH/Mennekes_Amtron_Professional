@@ -31,9 +31,9 @@ class MennekesAmtronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if not connected:
                     errors["base"] = "cannot_connect"
                 else:
-                    # Test-Lesezugriff exakt auf ein valides Register beschränken
+                    # Korrektur: device_id statt slave verwenden
                     result = await client.read_holding_registers(
-                        address=1000, count=1, slave=1
+                        address=1000, count=1, device_id=1
                     )
                     
                     if result.isError():

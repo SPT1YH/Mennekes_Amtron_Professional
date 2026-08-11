@@ -7,7 +7,7 @@ from pymodbus.exceptions import ModbusException
 _LOGGER = logging.getLogger(__name__)
 
 class MennekesAmtronCoordinator(DataUpdateCoordinator):
-    def __init__(self, hass, host, port=502, slave_id=1): # Falls ID 1 nicht geht, hier auf 255 ändern
+    def __init__(self, hass, host, port=502, slave_id=1):
         super().__init__(
             hass,
             _LOGGER,
@@ -26,11 +26,11 @@ class MennekesAmtronCoordinator(DataUpdateCoordinator):
             if not connected:
                 raise UpdateFailed(f"Verbindung zu {self.host}:{self.port} fehlgeschlagen.")
 
-            # WICHTIG: count=1, da wir wissen, dass Register 1000 ein 16-Bit Wert (1 Register) ist.
+            # Korrektur: device_id statt slave verwenden
             response = await client.read_holding_registers(
                 address=1000, 
                 count=1, 
-                slave=self.slave_id
+                device_id=self.slave_id
             )
             
             if response.isError():
@@ -41,7 +41,7 @@ class MennekesAmtronCoordinator(DataUpdateCoordinator):
             }
 
         except ModbusException as err:
-            raise UpdateFailed(f"Modbus-Verbindungsabbruch (0 bytes read?): {err}")
+            raise UpdateFailed(f"Modbus-Verbindungsabbruch: {err}")
         except Exception as err:
             raise UpdateFailed(f"Unerwarteter Fehler: {err}")
         finally:
