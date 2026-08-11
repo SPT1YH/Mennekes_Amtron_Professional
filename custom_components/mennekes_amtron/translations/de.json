@@ -1,0 +1,27 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MENNEKES AMTRON Professional",
+        "description": "Verbindung zur Wallbox über den MENNEKES Modbus-TCP-Server.",
+        "data": {
+          "host": "IP-Adresse / Hostname",
+          "port": "Modbus-TCP-Port"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Der Modbus-TCP-Server ist nicht erreichbar."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "MENNEKES AMTRON Optionen",
+        "data": {
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        }
+      }
+    }
+  }
+}
