@@ -65,7 +65,7 @@ def _u32(registers: list[int]) -> int:
 
 
 def _ascii(registers: list[int]) -> str:
-    raw = b"".join(struct.to_bytes(r, 2, "big") for r in registers)
+    raw = b"".join(int(r).to_bytes(2, "big") for r in registers)
     return raw.decode("ascii", errors="replace").replace("\x00", "").strip()
 
 
@@ -113,23 +113,25 @@ class MennekesAmtronCoordinator(DataUpdateCoordinator[dict]):
             # This is deliberately the connectivity/health check.
             general = await self._read_block(REG_FIRMWARE, 53)  # 100..152
 
-            def g(addr: int) -> list[int]:
-                return general[addr - REG_FIRMWARE :]
+            def g(addr: int, count: int = 1) -> list[int]:
+                start = addr - REG_FIRMWARE
+                return general[start : start + count]
 
             status = g(REG_STATUS)[0]
             vehicle = g(REG_VEHICLE)[0]
             availability = g(REG_AVAILABILITY)[0]
             plug_lock = g(REG_PLUG_LOCK)[0]
 
-            firmware_raw = g(REG_FIRMWARE)
-            protocol_raw = g(REG_PROTOCOL)
-            model_raw = g(REG_MODEL)
+            firmware_raw = g(REG_FIRMWARE, 2)
+            protocol_raw = g(REG_PROTOCOL, 2)
+            model_raw = g(REG_MODEL, 10)
 
             # Meter block.
             meter = await self._read_block(REG_ENERGY_L1, 28)
 
-            def m(addr: int) -> list[int]:
-                return meter[addr - REG_ENERGY_L1 :]
+            def m(addr: int, count: int = 2) -> list[int]:
+                start = addr - REG_ENERGY_L1
+                return meter[start : start + count]
 
             # Charge-process block.
             charge = await self._read_block(REG_SESSION_ENERGY, 4)
@@ -152,7 +154,7 @@ class MennekesAmtronCoordinator(DataUpdateCoordinator[dict]):
                 "firmware": _ascii(firmware_raw),
                 "protocol_version": _ascii(protocol_raw),
                 "model": _ascii(model_raw),
-                "error_word_1": _u32(g(REG_ERROR)),
+                "error_word_1": _u32(g(REG_ERROR, 2)),
                 "energy_l1_wh": _u32(m(REG_ENERGY_L1)),
                 "energy_l2_wh": _u32(m(REG_ENERGY_L2)),
                 "energy_l3_wh": _u32(m(REG_ENERGY_L3)),
