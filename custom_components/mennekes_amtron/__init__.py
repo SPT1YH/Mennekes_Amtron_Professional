@@ -1,7 +1,7 @@
 # custom_components/mennekes_amtron/__init__.py
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 from .coordinator import MennekesAmtronCoordinator

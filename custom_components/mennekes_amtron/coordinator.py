@@ -1,3 +1,4 @@
+# custom_components/mennekes_amtron/coordinator.py
 import logging
 from datetime import timedelta
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -26,7 +27,6 @@ class MennekesAmtronCoordinator(DataUpdateCoordinator):
             if not connected:
                 raise UpdateFailed(f"Verbindung zu {self.host}:{self.port} fehlgeschlagen.")
 
-            # Korrektur: device_id statt slave verwenden
             response = await client.read_holding_registers(
                 address=1000, 
                 count=1, 
