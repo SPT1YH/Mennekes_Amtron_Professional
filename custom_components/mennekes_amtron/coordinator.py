@@ -64,7 +64,7 @@ def _u32(registers: list[int]) -> int:
     return (registers[0] << 16) | registers[1]
 
 
-def _ascii(registers: list[int]) -> str:
+def _ascii(registers: list[int]) -> str: 
     raw = b"".join(int(r).to_bytes(2, "big") for r in registers)
     return raw.decode("ascii", errors="replace").replace("\x00", "").strip()
 
