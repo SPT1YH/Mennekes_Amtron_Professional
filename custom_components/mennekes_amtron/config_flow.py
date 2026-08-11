@@ -1,11 +1,13 @@
-# custom_components/mennekes_amtron/config_flow.py
 import voluptuous as vol
+import logging
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
 
 from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 DATA_SCHEMA = vol.Schema(
     {
@@ -29,19 +31,24 @@ class MennekesAmtronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if not connected:
                     errors["base"] = "cannot_connect"
                 else:
+                    # Test-Lesezugriff exakt auf ein valides Register beschränken
                     result = await client.read_holding_registers(
                         address=1000, count=1, slave=1
                     )
+                    
                     if result.isError():
+                        _LOGGER.error(f"MENNEKES ConfigFlow Fehler: {result}")
                         errors["base"] = "read_error"
                     else:
                         return self.async_create_entry(
                             title=f"MENNEKES ({user_input[CONF_HOST]})",
                             data=user_input,
                         )
-            except ModbusException:
+            except ModbusException as e:
+                _LOGGER.error(f"MENNEKES ConfigFlow Exception: {e}")
                 errors["base"] = "cannot_connect"
-            except Exception:
+            except Exception as e:
+                _LOGGER.error(f"MENNEKES ConfigFlow Unknown: {e}")
                 errors["base"] = "unknown"
             finally:
                 client.close()
