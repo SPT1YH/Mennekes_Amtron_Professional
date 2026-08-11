@@ -11,17 +11,9 @@
       }
     },
     "error": {
-      "cannot_connect": "Der Modbus-TCP-Server ist nicht erreichbar."
-    }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "title": "MENNEKES AMTRON Optionen",
-        "data": {
-          "scan_interval": "Abfrageintervall (Sekunden)"
-        }
-      }
+      "cannot_connect": "Der Modbus-TCP-Server ist nicht erreichbar oder antwortet nicht auf einen gültigen Modbus-Lesezugriff.",
+      "read_error": "Die Wallbox hat keine gültigen Modbus-Daten geliefert.",
+      "unknown": "Unbekannter Fehler."
     }
   }
 }

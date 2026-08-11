@@ -1,33 +1,33 @@
-# custom_components/mennekes_amtron/switch.py
+from __future__ import annotations
+
 from homeassistant.components.switch import SwitchEntity
+
 from .const import DOMAIN
 from .coordinator import MennekesAmtronCoordinator
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([MennekesReleaseSwitch(coordinator)])
 
-class MennekesReleaseSwitch(SwitchEntity):
-    def __init__(self, coordinator: MennekesAmtronCoordinator):
+async def async_setup_entry(hass, entry, async_add_entities):
+    coordinator: MennekesAmtronCoordinator = hass.data[DOMAIN][entry.entry_id]
+    async_add_entities([MennekesAvailabilitySwitch(coordinator)])
+
+
+class MennekesAvailabilitySwitch(SwitchEntity):
+    _attr_name = "MENNEKES Charging available"
+
+    def __init__(self, coordinator):
         self.coordinator = coordinator
-        self._attr_name = "MENNEKES Ladefreigabe"
-        self._attr_unique_id = f"{coordinator.host}_ladefreigabe_switch"
+        self._attr_unique_id = f"{coordinator.host}_charging_available"
 
     @property
     def is_on(self):
-        return False
+        return bool(self.coordinator.data) and self.coordinator.data["availability"]
 
     @property
-    def available(self) -> bool:
+    def available(self):
         return self.coordinator.last_update_success
 
     async def async_turn_on(self, **kwargs):
-        pass
+        await self.coordinator.async_set_availability(True)
 
     async def async_turn_off(self, **kwargs):
-        pass
-
-    async def async_added_to_hass(self):
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self.async_write_ha_state)
-        )
+        await self.coordinator.async_set_availability(False)

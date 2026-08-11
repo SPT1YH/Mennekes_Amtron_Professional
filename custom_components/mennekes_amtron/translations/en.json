@@ -11,17 +11,9 @@
       }
     },
     "error": {
-      "cannot_connect": "Unable to connect to the Modbus TCP server."
-    }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "title": "MENNEKES AMTRON options",
-        "data": {
-          "scan_interval": "Polling interval (seconds)"
-        }
-      }
+      "cannot_connect": "The Modbus TCP server is not reachable or did not answer a valid read request.",
+      "read_error": "The wallbox did not return valid Modbus data.",
+      "unknown": "Unknown error."
     }
   }
 }

@@ -1,57 +1,62 @@
+from __future__ import annotations
+
 import voluptuous as vol
-import logging
+
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
-from pymodbus.client import AsyncModbusTcpClient
-from pymodbus.exceptions import ModbusException
 
-from .const import DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
+from .api import MennekesModbusClient, ModbusError
+from .const import DEFAULT_PORT, DOMAIN
 
 DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
-        vol.Optional(CONF_PORT, default=502): int,
+        vol.Optional(CONF_PORT, default=DEFAULT_PORT): vol.All(
+            int, vol.Range(min=1, max=65535)
+        ),
     }
 )
 
-class MennekesAmtronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+
+class MennekesAmtronConfigFlow(
+    config_entries.ConfigFlow,
+    domain=DOMAIN,
+):
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
         errors = {}
 
         if user_input is not None:
-            client = AsyncModbusTcpClient(
-                user_input[CONF_HOST], port=user_input[CONF_PORT]
+            client = MennekesModbusClient(
+                user_input[CONF_HOST],
+                port=user_input[CONF_PORT],
+                unit_id=1,
+                timeout=5,
             )
+
             try:
-                connected = await client.connect()
-                if not connected:
-                    errors["base"] = "cannot_connect"
+                # Do NOT read register 1000 here.  The first test is a documented
+                # read-only system register block.
+                registers = await client.read_holding_registers(100, 5)
+
+                if len(registers) != 5:
+                    errors["base"] = "read_error"
                 else:
-                    # Korrektur: device_id statt slave verwenden
-                    result = await client.read_holding_registers(
-                        address=1000, count=1, device_id=1
+                    await self.async_set_unique_id(
+                        f"mennekes_amtron_{user_input[CONF_HOST]}"
                     )
-                    
-                    if result.isError():
-                        _LOGGER.error(f"MENNEKES ConfigFlow Fehler: {result}")
-                        errors["base"] = "read_error"
-                    else:
-                        return self.async_create_entry(
-                            title=f"MENNEKES ({user_input[CONF_HOST]})",
-                            data=user_input,
-                        )
-            except ModbusException as e:
-                _LOGGER.error(f"MENNEKES ConfigFlow Exception: {e}")
+                    self._abort_if_unique_id_configured()
+
+                    return self.async_create_entry(
+                        title=f"MENNEKES ({user_input[CONF_HOST]})",
+                        data=user_input,
+                    )
+
+            except ModbusError:
                 errors["base"] = "cannot_connect"
-            except Exception as e:
-                _LOGGER.error(f"MENNEKES ConfigFlow Unknown: {e}")
+            except Exception:
                 errors["base"] = "unknown"
-            finally:
-                client.close()
 
         return self.async_show_form(
             step_id="user",
