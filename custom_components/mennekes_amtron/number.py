@@ -1,8 +1,11 @@
 # custom_components/mennekes_amtron/number.py
+import logging
 from homeassistant.components.number import NumberEntity
 from homeassistant.const import UnitOfElectricCurrent
 from .const import DOMAIN
 from .coordinator import MennekesAmtronCoordinator
+
+_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]
@@ -32,9 +35,25 @@ class MennekesHemsLimitNumber(NumberEntity):
         from pymodbus.client import AsyncModbusTcpClient
         client = AsyncModbusTcpClient(self.coordinator.host, port=self.coordinator.port)
         try:
-            await client.connect()
-            await client.write_register(address=1000, value=int(value), device_id=self.coordinator.slave_id)
+            connected = await client.connect()
+            if not connected:
+                _LOGGER.error("Modbus-Verbindung zum Schreiben des Limits fehlgeschlagen.")
+                return
+
+            result = await client.write_register(
+                address=1000, 
+                value=int(value), 
+                device_id=self.coordinator.slave_id
+            )
+            
+            if result.isError():
+                _LOGGER.error(f"Fehler beim Schreiben auf Register 1000: {result}")
+            else:
+                _LOGGER.info(f"Erfolgreich HEMS-Limit auf {int(value)} A gesetzt.")
+
             await self.coordinator.async_request_refresh()
+        except Exception as err:
+            _LOGGER.error(f"Exception beim Schreiben des Modbus-Registers: {err}")
         finally:
             client.close()
 
