@@ -17,11 +17,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
         ]
     )
 
-
-class _Base(MennekesAmtronCoordinator, BinarySensorEntity):
-    pass
-
-
 class MennekesOnlineSensor(BinarySensorEntity):
     _attr_name = "MENNEKES Modbus online"
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
